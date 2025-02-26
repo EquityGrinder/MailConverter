@@ -1,0 +1,8 @@
+output_reference.mht
+*.msg
+*.spec
+*.pyc
+
+build/*
+data/*  
+dist/*

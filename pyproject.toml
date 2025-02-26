@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "msg-to-mht-converter"
+version = "0.1.0"
+description = "A tool to convert Outlook .msg files to .mht files."
+authors = ["Your Name <your-email@example.com>"]
+license = "MIT"
+
+
+[tool.poetry.dependencies]
+python = "^3.8"  # or whatever your Python version requirement is
+pywin32 = "*"  # replace the version with the one you want
+beautifulsoup4 = "^4.9.3" # Use the latest version number available
+
+[tool.poetry.dev-dependencies]
+# Development dependencies (such as linters, test frameworks, etc.) go here.
+# For example: pytest for testing, flake8 for linting, etc.
+pytest = "^7.1.1"
+flake8 = "^4.0.1"
+pygetwindow = "*"  # Add pygetwindow dependency
+pywinauto = "^0.6.8"  # Add pywinauto dependency, use a specific version if required
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+main = "test_main:main" # Assuming that you want to run the `main` function from the `test_main.py` as a script
