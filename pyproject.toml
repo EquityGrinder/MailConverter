@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "msg-to-mht-converter"
+name = "mailconverter"
 version = "0.1.0"
 description = "A tool to convert Outlook .msg files to .mht files."
 authors = ["Your Name <your-email@example.com>"]
