@@ -12,6 +12,7 @@ import win32com.client
 import pygetwindow as gw
 from pywinauto import Desktop
 
+
 class MailConverter:
     # Maximum width in pixels for an image to fit in a DIN A4 page size (at a common screen DPI)
     __MAX_IMAGE_WIDTH = (8.27 - 2) * 96
@@ -200,6 +201,7 @@ class MailConverter:
         """
         Convert a .msg file to .mht format.
         """
+        flag = True
         pythoncom.CoInitialize()
         try:
             outlook = win32com.client.Dispatch("Outlook.Application").GetNamespace("MAPI")
@@ -210,9 +212,12 @@ class MailConverter:
             mail_item.Close(0)
         except Exception as e:
             print(f"An error occurred: {e}")
+            flag = False
         finally:
             pythoncom.CoUninitialize()
 
+        return flag
+    
     def __list_msg_files_in_directory(self):
         """
         List all .msg files in the specified directory.
@@ -273,9 +278,16 @@ class MailConverter:
         os.makedirs(mht_dir_path, exist_ok=True)
         for file_path in self.__files:
             if file_path.lower().endswith('.msg'):
+                ## todo this could be achieved more pragmatically somewhere in the code we have the filenames earlier
                 file_base_name = os.path.basename(file_path)[:-4]
                 new_mht_file_path = os.path.join(mht_dir_path, file_base_name + '.mht')
-                self.__convert_msg_to_mht(file_path, new_mht_file_path)
-                self.__transform_mht(new_mht_file_path)
-                self.__open_files_on_different_monitors(file_path, new_mht_file_path)
-                input('Press Enter to continue...')
+                #################################################################################################
+                if self.__convert_msg_to_mht(file_path, new_mht_file_path):
+                    self.__transform_mht(new_mht_file_path)
+                    self.__open_files_on_different_monitors(file_path, new_mht_file_path)
+                
+                    if self.__debug:
+                        print(f"Converted {file_path} to {new_mht_file_path}")
+                        sleep(0.5)
+                    else:
+                        input('Press Enter to continue...')
