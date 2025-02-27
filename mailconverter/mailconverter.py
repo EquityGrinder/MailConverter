@@ -11,13 +11,14 @@ import subprocess
 import win32com.client
 import pygetwindow as gw
 from pywinauto import Desktop
+from os import getcwd
 
 
 class MailConverter:
     # Maximum width in pixels for an image to fit in a DIN A4 page size (at a common screen DPI)
     __MAX_IMAGE_WIDTH = (8.27 - 2) * 96
 
-    def __init__(self, path="data", debug=False, interface="console"):
+    def __init__(self, path=getcwd() + "/data", debug=False, interface="console"):
         """
         Initialize the MailConverter with the given path.
         """
@@ -36,9 +37,10 @@ class MailConverter:
             parser.add_argument('directory', help='The path to the directory containing .msg files to be converted.')
             args = parser.parse_args()
             self.__path = args.directory
-        
+
         self.__list_msg_files_in_directory()
         self.__process_files()
+
     def __start_interface(self):
         """
         Start the interface for the MailConverter.
