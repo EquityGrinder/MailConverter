@@ -26,3 +26,12 @@ def test_start():
 
     # Clean up by deleting the mht directory
     shutil.rmtree(mht_dir)
+
+
+def test_gui():
+    '''
+    test the gui for this tool
+    '''
+
+    converter = MailConverter(interface="gui")
+    converter.start()

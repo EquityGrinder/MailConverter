@@ -12,6 +12,9 @@ import win32com.client
 import pygetwindow as gw
 from pywinauto import Desktop
 from os import getcwd
+import sys
+from tkinter import Tk, Button, Label, filedialog
+import threading
 
 
 class MailConverter:
@@ -31,15 +34,11 @@ class MailConverter:
         """
         Start the conversion process for .msg files in the specified directory.
         """
-        if not self.__debug:
+        if self.__debug:
+            self.__list_msg_files_in_directory()
+            self.__process_files()
+        else:
             self.__start_interface()
-            parser = argparse.ArgumentParser(description='Process .msg files from a given directory.')
-            parser.add_argument('directory', help='The path to the directory containing .msg files to be converted.')
-            args = parser.parse_args()
-            self.__path = args.directory
-
-        self.__list_msg_files_in_directory()
-        self.__process_files()
 
     def __start_interface(self):
         """
@@ -47,7 +46,54 @@ class MailConverter:
         """
         if self.__interface == "console":
             self.__start_console_interface()
-        
+        elif self.__interface == "gui":
+            self.__start_gui_interface()
+    
+
+    def __start_console_interface(self):
+        """
+        Start the console interface for the MailConverter.
+        """
+        parser = argparse.ArgumentParser(description='Process .msg files from a given directory.')
+        parser.add_argument('directory', help='The path to the directory containing .msg files to be converted.')
+        args = parser.parse_args()
+        self.__path = args.directory
+
+        self.__list_msg_files_in_directory()
+        self.__process_files()
+
+    def __start_gui_interface(self):
+        """
+        Start the GUI interface for the MailConverter.
+        """
+        def select_directory():
+            self.__path = filedialog.askdirectory()
+            if self.__path:
+                self.path_label.config(text=f"Selected Path: {self.__path}")
+                self.start_button.config(state="normal")
+
+        def start_conversion():
+            self.__list_msg_files_in_directory()
+            self.__process_files()
+
+        def run_gui():
+            root = Tk()
+            root.title("Mail Converter")
+
+            select_button = Button(root, text="Select Directory", command=select_directory)
+            select_button.pack(pady=10)
+
+            self.path_label = Label(root, text="No directory selected")
+            self.path_label.pack(pady=10)
+
+            self.start_button = Button(root, text="Start Conversion", command=start_conversion, state="disabled")
+            self.start_button.pack(pady=10)
+
+            root.mainloop()
+
+        gui_thread = threading.Thread(target=run_gui)
+        gui_thread.start()
+
     def __get_plain_text_body(self, mail_item):
         """
         Extract the plain text body from a MailItem.
@@ -292,4 +338,5 @@ class MailConverter:
                         print(f"Converted {file_path} to {new_mht_file_path}")
                         sleep(0.5)
                     else:
-                        input('Press Enter to continue...')
+                        if self.__interface == 'console':
+                            input('Press Enter to continue...')
