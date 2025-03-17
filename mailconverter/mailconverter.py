@@ -13,7 +13,7 @@ import pygetwindow as gw
 from pywinauto import Desktop
 from os import getcwd
 import sys
-from tkinter import Tk, Button, Label, filedialog
+from tkinter import Tk, Button, Label, filedialog, StringVar, OptionMenu
 import threading
 
 
@@ -29,6 +29,7 @@ class MailConverter:
         self.__files = []
         self.__debug = debug
         self.__interface = interface
+        self.__batch = 1  # Default batch size
 
     def start(self):
         """
@@ -76,6 +77,9 @@ class MailConverter:
             self.__list_msg_files_in_directory()
             self.__process_files()
 
+        def set_batch(value):
+            self.__batch = int(value)
+
         def run_gui():
             root = Tk()
             root.title("Mail Converter")
@@ -85,6 +89,15 @@ class MailConverter:
 
             self.path_label = Label(root, text="No directory selected")
             self.path_label.pack(pady=10)
+
+            batch_label = Label(root, text="Select Batch Size")
+            batch_label.pack(pady=10)
+
+            batch_options = [1, 5, 10, 25, 50]
+            batch_var = StringVar(root)
+            batch_var.set(batch_options[0])  # Default value
+            batch_menu = OptionMenu(root, batch_var, *batch_options, command=set_batch)
+            batch_menu.pack(pady=10)
 
             self.start_button = Button(root, text="Start Conversion", command=start_conversion, state="disabled")
             self.start_button.pack(pady=10)
@@ -278,13 +291,13 @@ class MailConverter:
         """
         Transform the content of an .mht file by replacing German tags with English tags.
         """
-        with open(file_path, 'r') as file:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as file:
             content = file.read()
         content = content.replace(">Von:<", ">From:<")
         content = content.replace(">Gesendet:<", ">Sent:<")
         content = content.replace(">An:<", ">To:<")
         content = content.replace(">Betreff:<", ">Subject:<")
-        content = content.replace(">Anlagen:<", ">Attachements:<")
+        content = content.replace(">Anlagen:<", ">Attachments:<")
         content = content.replace(">Kategorien:<", ">Categories:<")
         content = content.replace(">Priorität:<", ">Priority:<")
         with open(file_path, 'w', encoding='utf-8') as file:
@@ -324,6 +337,7 @@ class MailConverter:
         """
         mht_dir_path = os.path.join(self.__path, 'mht')
         os.makedirs(mht_dir_path, exist_ok=True)
+        i = 1
         for file_path in self.__files:
             if file_path.lower().endswith('.msg'):
                 ## todo this could be achieved more pragmatically somewhere in the code we have the filenames earlier
@@ -338,5 +352,31 @@ class MailConverter:
                         print(f"Converted {file_path} to {new_mht_file_path}")
                         sleep(0.5)
                     else:
-                        if self.__interface == 'console':
-                            input('Press Enter to continue...')
+                        if i >= self.__batch:
+                            i = 1
+                            if self.__interface == 'console':
+                                input('Press Enter to continue...')
+                            if self.__interface == 'gui':
+                                self.__proceed_dialog()
+                        else:
+                            i += 1   
+
+    def __proceed_dialog(self):
+        """
+        A TKInter dialog is opened with a button called proceed. If this button gets hit the dialog is exited and the 
+        process continues. 
+        """
+        def close_dialog():
+            root.quit()
+            root.destroy()
+
+        root = Tk()
+        root.title("Mail Converter")
+
+        message_label = Label(root, text="If you want to continue with conversion, hit the proceed button.")
+        message_label.pack(pady=10)
+
+        proceed_button = Button(root, text="Proceed", command=close_dialog)
+        proceed_button.pack(pady=10)
+
+        root.mainloop()
